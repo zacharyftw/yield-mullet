@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useAccount } from "wagmi";
 import type { Vault } from "@/types";
 
 const chainColors: Record<string, { bg: string; text: string }> = {
@@ -33,7 +34,15 @@ function formatApy(apy: number | null): string {
   return `${apy.toFixed(1)}%`;
 }
 
-export default function VaultCard({ vault }: { vault: Vault }) {
+interface VaultCardProps {
+  vault: Vault;
+  recommended?: boolean;
+  allocationPercent?: number;
+  onDeposit?: (vault: Vault) => void;
+}
+
+export default function VaultCard({ vault, recommended, allocationPercent, onDeposit }: VaultCardProps) {
+  const { isConnected } = useAccount();
   const { protocol, network, analytics, tags, underlyingTokens, name } = vault;
   const apy = analytics.apy.total;
   const tvlStr = analytics.tvl.usd;
@@ -51,8 +60,25 @@ export default function VaultCard({ vault }: { vault: Vault }) {
         boxShadow: "0 0 24px rgba(0, 230, 118, 0.06)",
       }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="rounded-2xl border border-border bg-card p-5 transition-colors duration-300 hover:border-border-highlight/30"
+      className={`rounded-2xl border bg-card p-5 transition-colors duration-300 hover:border-border-highlight/30 ${
+        recommended
+          ? "border-primary/50 ring-1 ring-primary/20"
+          : "border-border"
+      }`}
     >
+      {recommended && (
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/30">
+            Recommended
+          </span>
+          {allocationPercent != null && (
+            <span className="text-xs font-bold text-primary tabular-nums">
+              {allocationPercent}% allocation
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
           <h4 className="font-semibold text-foreground">{protocol.name}</h4>
@@ -118,6 +144,19 @@ export default function VaultCard({ vault }: { vault: Vault }) {
             </span>
           ))}
         </div>
+      )}
+
+      {/* Deposit Button */}
+      {isConnected && onDeposit && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeposit(vault);
+          }}
+          className="mt-4 w-full py-2.5 rounded-xl bg-primary/10 border border-primary/30 text-primary text-sm font-semibold hover:bg-primary/20 hover:border-primary/50 transition-all duration-200"
+        >
+          Deposit
+        </button>
       )}
     </motion.div>
   );

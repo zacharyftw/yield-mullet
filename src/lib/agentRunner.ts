@@ -1,9 +1,10 @@
-import Anthropic from '@anthropic-ai/sdk';
+import OpenAI from 'openai';
 import { AGENT_CONFIGS } from './agents';
 import { AgentDecision, AgentType, Vault } from '@/types';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: 'https://api.groq.com/openai/v1',
 });
 
 export async function runAgent(
@@ -32,11 +33,12 @@ export async function runAgent(
     tags: v.tags,
   }));
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+  const completion = await groq.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
     max_tokens: 2048,
-    system: config.systemPrompt,
+    temperature: 0.3,
     messages: [
+      { role: 'system', content: config.systemPrompt },
       {
         role: 'user',
         content: `Here are the available vaults. Analyze and provide your allocation decision:\n\n${JSON.stringify(vaultSummary, null, 2)}`
@@ -44,7 +46,7 @@ export async function runAgent(
     ],
   });
 
-  const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
+  const responseText = completion.choices[0]?.message?.content || '';
 
   // Parse the JSON response
   const jsonMatch = responseText.match(/\{[\s\S]*\}/);

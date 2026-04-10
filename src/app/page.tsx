@@ -1,18 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Zap, Shield, Flame, ExternalLink, Layers, Globe, Box } from "lucide-react";
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Zap,
+  Shield,
+  Flame,
+  ExternalLink,
+  Layers,
+  Globe,
+  Box,
+  Brain,
+} from "lucide-react";
 import Navbar from "@/components/ui/Navbar";
 import AgentCard from "@/components/ui/AgentCard";
 import VaultCard from "@/components/ui/VaultCard";
+import DepositModal from "@/components/deposit/DepositModal";
 import ProofOfStrategy from "@/components/dashboard/ProofOfStrategy";
+import AgentResults from "@/components/dashboard/AgentResults";
 import PortfolioBreakdown from "@/components/dashboard/PortfolioBreakdown";
 import { useVaults } from "@/hooks/useVaults";
+import { useAgent } from "@/hooks/useAgent";
+import type { Vault, AgentDecision, AgentType } from "@/types";
 
 const agents = [
   {
-    id: "stable",
+    id: "stable" as AgentType,
     name: "Stable Agent",
     riskLevel: "low" as const,
     description:
@@ -21,7 +34,7 @@ const agents = [
     icon: Shield,
   },
   {
-    id: "conservative",
+    id: "conservative" as AgentType,
     name: "Conservative Agent",
     riskLevel: "medium" as const,
     description:
@@ -30,7 +43,7 @@ const agents = [
     icon: Zap,
   },
   {
-    id: "degen",
+    id: "degen" as AgentType,
     name: "Degen Agent",
     riskLevel: "high" as const,
     description:
@@ -72,11 +85,63 @@ function VaultSkeleton() {
 }
 
 export default function Home() {
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
+  const [decisions, setDecisions] = useState<AgentDecision[]>([]);
+  const [depositVault, setDepositVault] = useState<Vault | null>(null);
   const { vaults, isLoading, error } = useVaults({ sortBy: "apy" });
+  const { decision, isLoading: agentLoading, error: agentError, runAgent, reset } = useAgent(selectedAgent);
 
-  // Display up to 12 vaults
-  const displayedVaults = vaults.slice(0, 12);
+  // Track latest decision per agent type for risk score display
+  const latestDecisionByAgent = useMemo(() => {
+    const map: Partial<Record<AgentType, AgentDecision>> = {};
+    for (const d of decisions) {
+      map[d.agent] = d;
+    }
+    return map;
+  }, [decisions]);
+
+  // Build a set of recommended vault addresses from the latest decision
+  const recommendedVaults = useMemo(() => {
+    if (!decision) return new Map<string, number>();
+    const map = new Map<string, number>();
+    for (const alloc of decision.selectedVaults) {
+      if (alloc.vault?.address) {
+        map.set(alloc.vault.address, alloc.allocationPercent);
+      }
+    }
+    return map;
+  }, [decision]);
+
+  // Display up to 12 vaults, recommended ones first
+  const displayedVaults = useMemo(() => {
+    const sorted = [...vaults];
+    if (recommendedVaults.size > 0) {
+      sorted.sort((a, b) => {
+        const aRec = recommendedVaults.has(a.address) ? 1 : 0;
+        const bRec = recommendedVaults.has(b.address) ? 1 : 0;
+        return bRec - aRec;
+      });
+    }
+    return sorted.slice(0, 12);
+  }, [vaults, recommendedVaults]);
+
+  function handleRunAgent() {
+    runAgent(undefined, {
+      onSuccess: (data) => {
+        setDecisions((prev) => [data, ...prev]);
+      },
+    });
+  }
+
+  function handleSelectAgent(agentId: AgentType) {
+    if (selectedAgent === agentId) {
+      setSelectedAgent(null);
+      reset();
+    } else {
+      setSelectedAgent(agentId);
+      reset();
+    }
+  }
 
   return (
     <div className="relative flex flex-col min-h-screen">
@@ -175,15 +240,66 @@ export default function Home() {
                     description={agent.description}
                     apy={agent.apy}
                     isSelected={selectedAgent === agent.id}
-                    onSelect={() =>
-                      setSelectedAgent(
-                        selectedAgent === agent.id ? null : agent.id
-                      )
-                    }
+                    isRunning={agentLoading && selectedAgent === agent.id}
+                    riskScore={latestDecisionByAgent[agent.id]?.riskScore ?? null}
+                    onSelect={() => handleSelectAgent(agent.id)}
+                    onRun={handleRunAgent}
                   />
                 </motion.div>
               ))}
             </div>
+
+            {/* Agent Loading State */}
+            <AnimatePresence>
+              {agentLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-8 flex items-center justify-center gap-3 py-6"
+                >
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <Brain className="h-6 w-6 text-primary" />
+                  </motion.div>
+                  <p className="text-sm text-muted">
+                    Agent analyzing vaults and computing optimal allocation...
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Agent Error */}
+            <AnimatePresence>
+              {agentError && (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  className="mt-6 rounded-xl border border-red-400/30 bg-red-400/5 p-4 text-sm text-red-400"
+                >
+                  Agent error: {agentError.message}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Agent Results */}
+            <AnimatePresence>
+              {decision && !agentLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4 }}
+                  className="mt-8"
+                >
+                  <AgentResults decision={decision} />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </section>
 
@@ -202,6 +318,11 @@ export default function Home() {
               <p className="text-sm text-muted mb-8">
                 Live yield sources being monitored and allocated to by the agent
                 swarm.
+                {recommendedVaults.size > 0 && (
+                  <span className="text-primary ml-2">
+                    ({recommendedVaults.size} recommended by agent)
+                  </span>
+                )}
               </p>
             </motion.div>
 
@@ -217,7 +338,13 @@ export default function Home() {
                     <VaultSkeleton key={i} />
                   ))
                 : displayedVaults.map((vault) => (
-                    <VaultCard key={vault.slug} vault={vault} />
+                    <VaultCard
+                      key={vault.slug}
+                      vault={vault}
+                      recommended={recommendedVaults.has(vault.address)}
+                      allocationPercent={recommendedVaults.get(vault.address)}
+                      onDeposit={setDepositVault}
+                    />
                   ))}
             </div>
 
@@ -248,7 +375,7 @@ export default function Home() {
 
             <div className="grid gap-6 lg:grid-cols-2">
               <PortfolioBreakdown />
-              <ProofOfStrategy />
+              <ProofOfStrategy decisions={decisions} />
             </div>
           </div>
         </section>
@@ -272,6 +399,15 @@ export default function Home() {
           </a>
         </div>
       </footer>
+
+      {/* Deposit Modal */}
+      {depositVault && (
+        <DepositModal
+          vault={depositVault}
+          isOpen={!!depositVault}
+          onClose={() => setDepositVault(null)}
+        />
+      )}
     </div>
   );
 }
