@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json(quote);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

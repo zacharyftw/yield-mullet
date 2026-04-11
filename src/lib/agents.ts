@@ -1,6 +1,6 @@
-import { AgentConfig } from '@/types';
+import type { AgentConfig, AgentType } from '@/types';
 
-export const AGENT_CONFIGS: Record<string, AgentConfig> = {
+export const AGENT_CONFIGS: Record<AgentType, AgentConfig> = {
   stable: {
     type: 'stable',
     name: 'The Stablecoin Agent',

@@ -1,3 +1,5 @@
+import type { VaultsResponse, ComposerQuote, PortfolioPosition } from '@/types';
+
 const EARN_BASE_URL = 'https://earn.li.fi';
 const COMPOSER_BASE_URL = 'https://li.quest';
 
@@ -7,7 +9,7 @@ export async function fetchVaults(params?: {
   minTvl?: number;
   sortBy?: string;
   cursor?: string;
-}) {
+}): Promise<VaultsResponse> {
   const url = new URL(`${EARN_BASE_URL}/v1/earn/vaults`);
   if (params?.chainId) url.searchParams.set('chainId', String(params.chainId));
   if (params?.asset) url.searchParams.set('asset', params.asset);
@@ -17,31 +19,13 @@ export async function fetchVaults(params?: {
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Earn API error: ${res.status}`);
-  return res.json();
+  return res.json() as Promise<VaultsResponse>;
 }
 
-export async function fetchVaultDetail(chainId: number, address: string) {
-  const res = await fetch(`${EARN_BASE_URL}/v1/earn/vaults/${chainId}/${address}`);
-  if (!res.ok) throw new Error(`Vault detail error: ${res.status}`);
-  return res.json();
-}
-
-export async function fetchChains() {
-  const res = await fetch(`${EARN_BASE_URL}/v1/earn/chains`);
-  if (!res.ok) throw new Error(`Chains error: ${res.status}`);
-  return res.json();
-}
-
-export async function fetchProtocols() {
-  const res = await fetch(`${EARN_BASE_URL}/v1/earn/protocols`);
-  if (!res.ok) throw new Error(`Protocols error: ${res.status}`);
-  return res.json();
-}
-
-export async function fetchPortfolio(userAddress: string) {
+export async function fetchPortfolio(userAddress: string): Promise<PortfolioPosition[]> {
   const res = await fetch(`${EARN_BASE_URL}/v1/earn/portfolio/${userAddress}/positions`);
   if (!res.ok) throw new Error(`Portfolio error: ${res.status}`);
-  return res.json();
+  return res.json() as Promise<PortfolioPosition[]>;
 }
 
 export async function getComposerQuote(params: {
@@ -53,7 +37,7 @@ export async function getComposerQuote(params: {
   toAddress: string;
   fromAmount: string;
   slippage?: number;
-}) {
+}): Promise<ComposerQuote> {
   const url = new URL(`${COMPOSER_BASE_URL}/v1/quote`);
   url.searchParams.set('fromChain', String(params.fromChain));
   url.searchParams.set('toChain', String(params.toChain));
@@ -76,5 +60,5 @@ export async function getComposerQuote(params: {
     const error = await res.text();
     throw new Error(`Composer error: ${res.status} - ${error}`);
   }
-  return res.json();
+  return res.json() as Promise<ComposerQuote>;
 }

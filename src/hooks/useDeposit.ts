@@ -10,7 +10,7 @@ interface UseDepositParams {
   toChain: number;
   fromToken: string;
   toToken: string; // vault address
-  fromAddress?: string;
+  fromAddress: string;
   fromAmount: string; // in smallest unit
 }
 
@@ -43,8 +43,8 @@ export function useDeposit() {
       url.searchParams.set("toChain", String(params.toChain));
       url.searchParams.set("fromToken", params.fromToken);
       url.searchParams.set("toToken", params.toToken);
-      url.searchParams.set("fromAddress", params.fromAddress || "");
-      url.searchParams.set("toAddress", params.fromAddress || "");
+      url.searchParams.set("fromAddress", params.fromAddress);
+      url.searchParams.set("toAddress", params.fromAddress);
       url.searchParams.set("fromAmount", params.fromAmount);
 
       const res = await fetch(url.toString());

@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { AGENT_CONFIGS } from './agents';
-import { AgentDecision, AgentType, Vault } from '@/types';
+import type { AgentDecision, AgentType, Vault, VaultAllocation } from '@/types';
 
 const groq = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
@@ -64,17 +64,17 @@ export async function runAgent(
   }
 
   // Only include vaults that actually exist in our data
-  const selectedVaults = decision.allocations
-    .map((a: any) => {
-      const vault = transactionalVaults.find(v => v.address === a.vaultAddress);
-      if (!vault) return null;
-      return {
+  const selectedVaults: VaultAllocation[] = [];
+  for (const a of decision.allocations as Array<{ vaultAddress: string; percent: number; reason: string }>) {
+    const vault = transactionalVaults.find(v => v.address === a.vaultAddress);
+    if (vault) {
+      selectedVaults.push({
         vault,
         allocationPercent: a.percent,
         reason: a.reason,
-      };
-    })
-    .filter(Boolean);
+      });
+    }
+  }
 
   return {
     agent: agentType,

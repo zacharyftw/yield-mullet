@@ -7,9 +7,16 @@ export async function GET(
 ) {
   try {
     const { address } = await params;
+
+    // Validate Ethereum address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      return NextResponse.json({ error: 'Invalid address format' }, { status: 400 });
+    }
+
     const data = await fetchPortfolio(address);
     return NextResponse.json(data);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
