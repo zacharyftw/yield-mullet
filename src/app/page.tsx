@@ -9,6 +9,7 @@ import DepositModal from "@/components/deposit/DepositModal";
 import ProofOfStrategy from "@/components/dashboard/ProofOfStrategy";
 import AgentResults from "@/components/dashboard/AgentResults";
 import PortfolioBreakdown from "@/components/dashboard/PortfolioBreakdown";
+import VaultTable from "@/components/dashboard/VaultTable";
 import { useVaults } from "@/hooks/useVaults";
 import { useAgent } from "@/hooks/useAgent";
 import type { Vault, AgentDecision, AgentType } from "@/types";
@@ -41,7 +42,7 @@ export default function Home() {
   const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
   const [decisions, setDecisions] = useState<AgentDecision[]>([]);
   const [depositVault, setDepositVault] = useState<Vault | null>(null);
-  const { vaults } = useVaults({ sortBy: "apy" });
+  const { vaults, isLoading: vaultsLoading } = useVaults({ sortBy: "apy" });
   const { decision, isLoading: agentLoading, error: agentError, runAgent, reset } = useAgent(selectedAgent);
 
   // Track latest decision per agent type for risk score display
@@ -264,6 +265,28 @@ export default function Home() {
           </div>
         </section>
 
+
+        {/* Vault Explorer */}
+        <section id="vaults" className="px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <p className="text-xs font-mono text-muted/40 mb-3 tracking-wider">//vaults</p>
+              <h2 className="text-3xl font-bold text-foreground mb-3">
+                Vault Explorer
+              </h2>
+              <p className="text-sm text-muted/60 mb-8">
+                Browse all {vaults.length > 0 ? vaults.length : ""} vaults across {liveStats.chains} chains. Filter, sort, deposit.
+              </p>
+            </motion.div>
+
+            <VaultTable vaults={vaults} isLoading={vaultsLoading} onDeposit={setDepositVault} />
+          </div>
+        </section>
 
         {/* Dashboard Section */}
         <section id="dashboard" className="px-4 py-24 sm:px-6 lg:px-8">
