@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Brain, Terminal } from "lucide-react";
 import type { AgentDecision } from "@/types";
 
 const protocolNames: Record<string, string> = {
@@ -25,12 +24,6 @@ const agentLabels: Record<string, string> = {
   degen: "Degen Agent",
 };
 
-const agentColors: Record<string, string> = {
-  stable: "text-green-400",
-  conservative: "text-amber-400",
-  degen: "text-red-400",
-};
-
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleTimeString("en-US", {
@@ -48,21 +41,15 @@ export default function ProofOfStrategy({ decisions = [] }: ProofOfStrategyProps
   const hasDecisions = decisions.length > 0;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-6 overflow-hidden">
-      <div className="flex items-center gap-2 mb-6">
-        <Brain className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold text-foreground">
-          Agent Brain &mdash; Strategy Log
-        </h3>
-        <Terminal className="h-4 w-4 text-muted ml-auto" />
-      </div>
+    <div className="rounded-lg border border-border bg-white p-6 overflow-hidden">
+      <h3 className="text-base font-semibold text-foreground mb-6">
+        Strategy Log
+      </h3>
 
-      {/* Terminal-style container */}
-      <div className="rounded-xl bg-background/80 border border-border p-4 max-h-[420px] overflow-y-auto">
+      <div className="rounded-lg border border-border p-4 max-h-[420px] overflow-y-auto">
         {!hasDecisions ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <Brain className="h-8 w-8 text-muted/30 mb-3" />
-            <p className="text-sm text-muted/60">
+            <p className="text-sm text-muted">
               No agent decisions yet. Select a strategy above.
             </p>
           </div>
@@ -74,18 +61,16 @@ export default function ProofOfStrategy({ decisions = [] }: ProofOfStrategyProps
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="border-l-2 border-border pl-4 pb-2 hover:border-primary/50 transition-colors duration-300"
+                className="border-l-2 border-border pl-4 pb-2 hover:border-foreground/30 transition-colors duration-200"
               >
                 <div className="flex items-center gap-3 mb-1.5">
-                  <span className="text-xs font-mono text-muted/60">
+                  <span className="text-xs font-mono text-muted">
                     {formatTime(entry.timestamp)}
                   </span>
-                  <span
-                    className={`text-xs font-semibold ${agentColors[entry.agent] || "text-primary"}`}
-                  >
+                  <span className="text-xs font-semibold text-foreground">
                     {agentLabels[entry.agent] || entry.agent}
                   </span>
-                  <span className="text-xs text-muted/40 ml-auto">
+                  <span className="text-xs text-muted font-mono ml-auto">
                     Risk: {entry.riskScore}/10
                   </span>
                 </div>
@@ -95,9 +80,9 @@ export default function ProofOfStrategy({ decisions = [] }: ProofOfStrategyProps
                   {entry.selectedVaults.length !== 1 ? "s" : ""}
                 </p>
 
-                <p className="text-xs font-mono leading-relaxed text-muted/70 bg-card/50 rounded-lg px-3 py-2 border border-border/50 mb-2">
+                <p className="text-xs font-mono leading-relaxed text-muted rounded-lg px-3 py-2 bg-card border border-border mb-2">
                   {entry.reasoning}
-                  <span className="inline-block w-1.5 h-3.5 bg-primary ml-1 align-middle animate-blink" />
+                  <span className="inline-block w-1 h-3 bg-foreground ml-1 align-middle animate-blink" />
                 </p>
 
                 {/* Allocation summary */}
@@ -105,7 +90,7 @@ export default function ProofOfStrategy({ decisions = [] }: ProofOfStrategyProps
                   {entry.selectedVaults.map((alloc, j) => (
                     <span
                       key={j}
-                      className="text-xs px-2 py-0.5 rounded-full border border-primary/20 bg-primary/5 text-primary"
+                      className="text-xs px-2 py-0.5 rounded border border-border text-foreground font-mono"
                     >
                       {cleanProtocolName(alloc.vault.protocol?.name || "Vault")}{" "}
                       {alloc.allocationPercent}%

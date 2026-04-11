@@ -2,24 +2,13 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Zap,
-  Shield,
-  Flame,
-  ExternalLink,
-  Layers,
-  Globe,
-  Box,
-  Brain,
-} from "lucide-react";
+import { ExternalLink, Brain } from "lucide-react";
 import Navbar from "@/components/ui/Navbar";
 import AgentCard from "@/components/ui/AgentCard";
-import VaultCard from "@/components/ui/VaultCard";
 import DepositModal from "@/components/deposit/DepositModal";
 import ProofOfStrategy from "@/components/dashboard/ProofOfStrategy";
 import AgentResults from "@/components/dashboard/AgentResults";
 import PortfolioBreakdown from "@/components/dashboard/PortfolioBreakdown";
-import { useVaults } from "@/hooks/useVaults";
 import { useAgent } from "@/hooks/useAgent";
 import type { Vault, AgentDecision, AgentType } from "@/types";
 
@@ -31,7 +20,6 @@ const agents = [
     description:
       "Focuses on blue-chip stablecoin yields across battle-tested lending protocols. Prioritizes capital preservation with steady, predictable returns. Targets Aave, Compound, and Spark.",
     apy: 5.2,
-    icon: Shield,
   },
   {
     id: "conservative" as AgentType,
@@ -40,7 +28,6 @@ const agents = [
     description:
       "Balances ETH staking, liquid staking derivatives, and moderate DeFi strategies. Accepts some volatility for higher yields. Operates across Lido, Rocket Pool, and Pendle.",
     apy: 8.7,
-    icon: Zap,
   },
   {
     id: "degen" as AgentType,
@@ -49,46 +36,19 @@ const agents = [
     description:
       "Hunts for the highest yields through concentrated liquidity, leveraged farming, and new protocol incentives. High risk, high reward. Active on Uniswap V4, GMX, and emerging protocols.",
     apy: 24.3,
-    icon: Flame,
   },
 ];
 
 const stats = [
-  { label: "Vaults Tracked", value: "672+", icon: Layers },
-  { label: "Chains", value: "21", icon: Globe },
-  { label: "Protocols", value: "20+", icon: Box },
+  { label: "Vaults Tracked", value: "672+" },
+  { label: "Chains", value: "21" },
+  { label: "Protocols", value: "20+" },
 ];
-
-function VaultSkeleton() {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 space-y-3">
-      <div className="flex items-center justify-between mb-3">
-        <div className="h-5 w-24 rounded-md animate-shimmer" />
-        <div className="h-4 w-16 rounded-md animate-shimmer" />
-      </div>
-      <div className="flex items-end justify-between mb-4">
-        <div>
-          <div className="h-3 w-8 rounded mb-1 animate-shimmer" />
-          <div className="h-8 w-20 rounded animate-shimmer" />
-        </div>
-        <div className="text-right">
-          <div className="h-3 w-8 rounded mb-1 animate-shimmer" />
-          <div className="h-6 w-16 rounded animate-shimmer" />
-        </div>
-      </div>
-      <div className="flex gap-1.5">
-        <div className="h-5 w-16 rounded-full animate-shimmer" />
-        <div className="h-5 w-12 rounded-full animate-shimmer" />
-      </div>
-    </div>
-  );
-}
 
 export default function Home() {
   const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
   const [decisions, setDecisions] = useState<AgentDecision[]>([]);
   const [depositVault, setDepositVault] = useState<Vault | null>(null);
-  const { vaults, isLoading, error } = useVaults({ sortBy: "apy" });
   const { decision, isLoading: agentLoading, error: agentError, runAgent, reset } = useAgent(selectedAgent);
 
   // Track latest decision per agent type for risk score display
@@ -100,30 +60,6 @@ export default function Home() {
     return map;
   }, [decisions]);
 
-  // Build a set of recommended vault addresses from the latest decision
-  const recommendedVaults = useMemo(() => {
-    if (!decision) return new Map<string, number>();
-    const map = new Map<string, number>();
-    for (const alloc of decision.selectedVaults) {
-      if (alloc.vault?.address) {
-        map.set(alloc.vault.address, alloc.allocationPercent);
-      }
-    }
-    return map;
-  }, [decision]);
-
-  // Display up to 12 vaults, recommended ones first
-  const displayedVaults = useMemo(() => {
-    const sorted = [...vaults];
-    if (recommendedVaults.size > 0) {
-      sorted.sort((a, b) => {
-        const aRec = recommendedVaults.has(a.address) ? 1 : 0;
-        const bRec = recommendedVaults.has(b.address) ? 1 : 0;
-        return bRec - aRec;
-      });
-    }
-    return sorted.slice(0, 12);
-  }, [vaults, recommendedVaults]);
 
   function handleRunAgent() {
     runAgent(undefined, {
@@ -145,32 +81,27 @@ export default function Home() {
 
   return (
     <div className="relative flex flex-col min-h-screen">
+
       <Navbar />
 
       <main className="flex-1 relative z-10">
         {/* Hero Section */}
-        <section className="relative overflow-hidden px-4 pt-24 pb-20 sm:px-6 lg:px-8">
-          {/* Background glow */}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(0,230,118,0.08)_0%,_transparent_60%)]" />
-          <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/5 blur-[100px]" />
-
-          <div className="relative mx-auto max-w-4xl text-center">
+        <section className="px-4 pt-32 pb-28 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-4xl text-center">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-5xl font-bold tracking-tight sm:text-7xl"
+              className="text-5xl font-bold tracking-tight sm:text-7xl text-foreground"
             >
-              <span className="bg-gradient-to-r from-primary via-emerald-300 to-secondary bg-clip-text text-transparent">
-                Yield Mullet
-              </span>
+              Yield Mullet
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.15 }}
-              className="mt-5 text-xl font-medium italic text-primary/70"
+              className="mt-6 text-xl font-medium italic text-muted"
             >
               &ldquo;Business in the front, yield in the back.&rdquo;
             </motion.p>
@@ -179,7 +110,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="mt-5 max-w-2xl mx-auto text-base leading-relaxed text-muted"
+              className="mt-6 max-w-2xl mx-auto text-base leading-relaxed text-muted/70"
             >
               An AI agent swarm that continuously scans, evaluates, and
               rebalances your DeFi positions across chains. Choose your risk
@@ -192,15 +123,14 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.45 }}
-              className="mt-10 flex items-center justify-center gap-8 sm:gap-12"
+              className="mt-14 flex items-center justify-center gap-12 sm:gap-16"
             >
               {stats.map((stat) => (
                 <div key={stat.label} className="flex flex-col items-center gap-1">
-                  <stat.icon className="h-4 w-4 text-primary/60 mb-1" />
-                  <span className="text-2xl font-bold text-foreground tabular-nums">
+                  <span className="text-3xl font-bold text-foreground tabular-nums">
                     {stat.value}
                   </span>
-                  <span className="text-xs text-muted">{stat.label}</span>
+                  <span className="text-xs text-muted font-mono">{stat.label}</span>
                 </div>
               ))}
             </motion.div>
@@ -208,7 +138,7 @@ export default function Home() {
         </section>
 
         {/* Agent Strategy Cards */}
-        <section id="strategy" className="px-4 pb-20 sm:px-6 lg:px-8">
+        <section id="strategy" className="px-4 py-20 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -216,10 +146,11 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-2xl font-semibold text-foreground mb-2">
+              <p className="text-xs font-mono text-muted/40 mb-3 tracking-wider">//strategies</p>
+              <h2 className="text-3xl font-bold text-foreground mb-3">
                 Choose Your Strategy
               </h2>
-              <p className="text-sm text-muted mb-8">
+              <p className="text-sm text-muted/60 mb-12">
                 Each agent runs a distinct strategy calibrated to a different
                 risk profile.
               </p>
@@ -296,68 +227,16 @@ export default function Home() {
                   transition={{ duration: 0.4 }}
                   className="mt-8"
                 >
-                  <AgentResults decision={decision} />
+                  <AgentResults decision={decision} onDeposit={setDepositVault} />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
         </section>
 
-        {/* Vaults */}
-        <section id="vaults" className="px-4 pb-20 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-            >
-              <h2 className="text-2xl font-semibold text-foreground mb-2">
-                Top Vaults
-              </h2>
-              <p className="text-sm text-muted mb-8">
-                Live yield sources being monitored and allocated to by the agent
-                swarm.
-                {recommendedVaults.size > 0 && (
-                  <span className="text-primary ml-2">
-                    ({recommendedVaults.size} recommended by agent)
-                  </span>
-                )}
-              </p>
-            </motion.div>
-
-            {error && (
-              <div className="mb-6 rounded-xl border border-red-400/30 bg-red-400/5 p-4 text-sm text-red-400">
-                Failed to load vaults: {error.message}
-              </div>
-            )}
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => (
-                    <VaultSkeleton key={i} />
-                  ))
-                : displayedVaults.map((vault) => (
-                    <VaultCard
-                      key={vault.slug}
-                      vault={vault}
-                      recommended={recommendedVaults.has(vault.address)}
-                      allocationPercent={recommendedVaults.get(vault.address)}
-                      onDeposit={setDepositVault}
-                    />
-                  ))}
-            </div>
-
-            {!isLoading && displayedVaults.length === 0 && !error && (
-              <p className="text-center text-muted text-sm mt-8">
-                No vaults available at the moment.
-              </p>
-            )}
-          </div>
-        </section>
 
         {/* Dashboard Section */}
-        <section id="dashboard" className="px-4 pb-24 sm:px-6 lg:px-8">
+        <section id="dashboard" className="px-4 py-24 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -365,10 +244,11 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-2xl font-semibold text-foreground mb-2">
+              <p className="text-xs font-mono text-muted/40 mb-3 tracking-wider">//dashboard</p>
+              <h2 className="text-3xl font-bold text-foreground mb-3">
                 Agent Activity
               </h2>
-              <p className="text-sm text-muted mb-8">
+              <p className="text-sm text-muted/60 mb-12">
                 Real-time portfolio overview and agent decision transparency.
               </p>
             </motion.div>
@@ -382,7 +262,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-border/50 py-8 px-4">
+      <footer className="relative z-10 border-t border-border py-10 px-4">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted/60">
             Built for DeFi Mullet Hackathon &mdash; AI-powered yield

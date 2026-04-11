@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #0a0f0a;
-  --color-foreground: #ffffff;
-  --color-card: #111a11;
-  --color-primary: #00e676;
-  --color-primary-dark: #00c853;
-  --color-secondary: #00bfa5;
-  --color-muted: #a0a0a0;
-  --color-border: #1a2e1a;
-  --color-border-highlight: #00e676;
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-card: #f8f8f9;
+  --color-primary: #3F49E1;
+  --color-primary-dark: #333cc4;
+  --color-secondary: #7C83EB;
+  --color-muted: #798086;
+  --color-border: #e4e7e9;
+  --color-border-highlight: #3F49E1;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -21,16 +21,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0f0a;
+  background: #f4f5f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1a2e1a;
+  background: #d1d5db;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00e676;
+  background: #3F49E1;
 }
 
 /* Smooth transitions as default */
@@ -41,45 +41,20 @@
 }
 
 body {
-  background: #0a0f0a;
-  color: #ffffff;
+  background: #ffffff;
+  color: #0a0a0a;
   font-family: var(--font-sans), system-ui, sans-serif;
-  position: relative;
-}
-
-/* Subtle background grid overlay */
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0, 230, 118, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 230, 118, 0.015) 1px, transparent 1px);
-  background-size: 60px 60px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Subtle noise texture */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  pointer-events: none;
-  z-index: 0;
 }
 
 /* Selection styling */
 ::selection {
-  background: rgba(0, 230, 118, 0.3);
-  color: #ffffff;
+  background: rgba(63, 73, 225, 0.2);
+  color: #0a0a0a;
 }
 
 /* Focus ring */
 :focus-visible {
-  outline: 2px solid rgba(0, 230, 118, 0.6);
+  outline: 2px solid rgba(63, 73, 225, 0.6);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -94,13 +69,13 @@ body::after {
   animation: blink 1s step-end infinite;
 }
 
-/* Glow pulse keyframe */
+/* Glow pulse — selected agent card */
 @keyframes glow-pulse {
   0%, 100% {
-    box-shadow: 0 0 12px rgba(0, 230, 118, 0.15), 0 0 24px rgba(0, 230, 118, 0.05);
+    box-shadow: 0 0 0 1px rgba(63, 73, 225, 0.3);
   }
   50% {
-    box-shadow: 0 0 20px rgba(0, 230, 118, 0.25), 0 0 40px rgba(0, 230, 118, 0.1);
+    box-shadow: 0 0 0 1px rgba(63, 73, 225, 0.5), 0 0 12px rgba(63, 73, 225, 0.08);
   }
 }
 
@@ -117,9 +92,9 @@ body::after {
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    #1a2e1a 25%,
-    #243824 50%,
-    #1a2e1a 75%
+    #f0f0f0 25%,
+    #e4e7e9 50%,
+    #f0f0f0 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;

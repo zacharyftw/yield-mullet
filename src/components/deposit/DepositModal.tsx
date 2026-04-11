@@ -14,6 +14,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { Vault } from "@/types";
 import { useDeposit } from "@/hooks/useDeposit";
 import { useTokenBalance } from "@/hooks/useTokenBalance";
@@ -59,6 +60,7 @@ export default function DepositModal({
   const { address, isConnected } = useAccount();
   const connectedChainId = useChainId();
   const { switchChain } = useSwitchChain();
+  const { openConnectModal } = useConnectModal();
 
   const [amount, setAmount] = useState("");
   const [fromChainId, setFromChainId] = useState<number>(connectedChainId);
@@ -429,7 +431,7 @@ export default function DepositModal({
                         )}
                       </div>
 
-                      {hasInsufficientBalance && parsedAmount > 0 && (
+                      {isConnected && hasInsufficientBalance && parsedAmount > 0 && (
                         <p className="text-xs text-red-400 mt-1.5">
                           Insufficient balance
                         </p>
@@ -530,10 +532,13 @@ export default function DepositModal({
                     {/* Action Buttons */}
                     <div className="pt-1">
                       {!isConnected ? (
-                        <div className="flex items-center justify-center gap-2 py-3 rounded-xl border border-border bg-border/20 text-muted text-sm">
+                        <button
+                          onClick={() => openConnectModal?.()}
+                          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-dark transition-colors cursor-pointer"
+                        >
                           <Wallet className="h-4 w-4" />
                           Connect wallet to deposit
-                        </div>
+                        </button>
                       ) : !quote ? (
                         <button
                           onClick={handleGetQuote}

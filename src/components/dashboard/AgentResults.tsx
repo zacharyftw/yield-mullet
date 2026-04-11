@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Sparkles, TrendingUp, ArrowRight } from "lucide-react";
-import type { AgentDecision } from "@/types";
+import type { AgentDecision, Vault } from "@/types";
 
 const protocolNames: Record<string, string> = {
   "morpho-v1": "Morpho", "morpho-v2": "Morpho", "aave-v3": "Aave V3",
@@ -43,15 +43,16 @@ const chainColors: Record<string, { bg: string; text: string }> = {
 
 interface AgentResultsProps {
   decision: AgentDecision;
+  onDeposit?: (vault: Vault) => void;
 }
 
-export default function AgentResults({ decision }: AgentResultsProps) {
+export default function AgentResults({ decision, onDeposit }: AgentResultsProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="rounded-2xl border border-primary/30 bg-card p-6"
+      className="rounded-2xl border border-border bg-white p-6"
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
@@ -73,7 +74,7 @@ export default function AgentResults({ decision }: AgentResultsProps) {
       </div>
 
       {/* Overall Reasoning */}
-      <div className="mb-6 rounded-xl bg-background/80 border border-border p-4">
+      <div className="mb-6 rounded-xl bg-card border border-border p-4">
         <p className="text-sm font-mono text-muted/80 leading-relaxed">
           {decision.reasoning}
         </p>
@@ -103,7 +104,7 @@ export default function AgentResults({ decision }: AgentResultsProps) {
               initial={{ opacity: 0, x: -12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.08 }}
-              className="rounded-xl border border-border bg-background/50 p-4 hover:border-primary/30 transition-colors duration-200"
+              className="rounded-xl border border-border bg-card p-4 hover:border-primary/30 transition-colors duration-200"
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
@@ -140,14 +141,17 @@ export default function AgentResults({ decision }: AgentResultsProps) {
       </div>
 
       {/* CTA */}
-      <motion.button
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-background font-medium text-sm shadow-[0_0_20px_rgba(0,230,118,0.2)] hover:shadow-[0_0_30px_rgba(0,230,118,0.3)] transition-shadow duration-300"
-      >
-        Deposit into this strategy
-        <ArrowRight className="h-4 w-4" />
-      </motion.button>
+      {onDeposit && decision.selectedVaults.length > 0 && (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => onDeposit(decision.selectedVaults[0].vault)}
+          className="mt-6 w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-medium text-sm hover:bg-primary-dark transition-colors duration-200"
+        >
+          Deposit into this strategy
+          <ArrowRight className="h-4 w-4" />
+        </motion.button>
+      )}
     </motion.div>
   );
 }
