@@ -48,7 +48,7 @@ export default function PortfolioBreakdown() {
 
   if (!isConnected) {
     return (
-      <div className="rounded-lg border border-border bg-white p-6 flex flex-col items-center justify-center min-h-[300px]">
+      <div className="rounded-lg border border-border bg-card p-6 flex flex-col items-center justify-center min-h-[300px]">
         <p className="text-muted text-sm mb-2">No wallet connected</p>
         <p className="text-muted/60 text-xs">
           Connect your wallet to see portfolio breakdown
@@ -59,7 +59,7 @@ export default function PortfolioBreakdown() {
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-border bg-white p-6 flex flex-col items-center justify-center min-h-[300px]">
+      <div className="rounded-lg border border-border bg-card p-6 flex flex-col items-center justify-center min-h-[300px]">
         <p className="text-muted text-sm">Loading portfolio...</p>
       </div>
     );
@@ -67,7 +67,7 @@ export default function PortfolioBreakdown() {
 
   if (positions.length === 0) {
     return (
-      <div className="rounded-lg border border-border bg-white p-6 flex flex-col items-center justify-center min-h-[300px]">
+      <div className="rounded-lg border border-border bg-card p-6 flex flex-col items-center justify-center min-h-[300px]">
         <p className="text-muted text-sm mb-2">No active positions</p>
         <p className="text-muted/60 text-xs">
           Deposit into a vault to see your portfolio here
@@ -121,7 +121,7 @@ export default function PortfolioBreakdown() {
   const assetAllocations = toAllocations(assetTotals);
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6">
+    <div className="rounded-lg border border-border bg-card p-6">
       <h3 className="text-base font-semibold text-foreground mb-6">
         Portfolio Breakdown
       </h3>

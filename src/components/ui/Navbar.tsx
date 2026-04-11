@@ -1,7 +1,8 @@
 "use client";
 
-import { Shuffle } from "lucide-react";
+import { Shuffle, Sun, Moon } from "lucide-react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useTheme } from "@/hooks/useTheme";
 
 const navLinks = [
   { label: "Strategy", href: "#strategy" },
@@ -10,6 +11,8 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const { theme, toggle } = useTheme();
+
   return (
     <nav className="sticky top-0 z-50 w-full bg-background/80 backdrop-blur-xl border-b border-border">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -34,12 +37,21 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Connect button */}
-        <ConnectButton
-          chainStatus="icon"
-          showBalance={false}
-          accountStatus="address"
-        />
+        {/* Right side */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggle}
+            className="p-2 rounded-lg border border-border text-muted hover:text-foreground hover:border-foreground/30 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <ConnectButton
+            chainStatus="icon"
+            showBalance={false}
+            accountStatus="address"
+          />
+        </div>
       </div>
     </nav>
   );

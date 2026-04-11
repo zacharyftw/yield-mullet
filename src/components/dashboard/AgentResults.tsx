@@ -23,7 +23,7 @@ export default function AgentResults({ decision, onDeposit }: AgentResultsProps)
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="rounded-2xl border border-border bg-white p-6"
+      className="rounded-2xl border border-border bg-card p-6"
     >
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
