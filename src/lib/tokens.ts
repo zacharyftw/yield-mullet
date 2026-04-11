@@ -7,14 +7,6 @@ export const COMMON_TOKENS: Record<number, { usdc: string; usdt: string; native:
   43114: { usdc: '0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E', usdt: '0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7', native: '0x0000000000000000000000000000000000000000' },
 };
 
-export const TOKEN_DECIMALS: Record<string, number> = {
-  USDC: 6,
-  USDT: 6,
-  ETH: 18,
-  MATIC: 18,
-  AVAX: 18,
-};
-
 export interface TokenOption {
   symbol: string;
   address: string;
