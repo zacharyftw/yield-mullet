@@ -50,12 +50,6 @@ export interface VaultsResponse {
   total: number;
 }
 
-export interface Chain {
-  chainId: number;
-  name: string;
-  networkCaip: string;
-}
-
 // Agent types
 export type RiskLevel = 'low' | 'medium' | 'high';
 export type AgentType = 'stable' | 'conservative' | 'degen';

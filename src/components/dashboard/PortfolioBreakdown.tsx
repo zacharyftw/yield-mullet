@@ -90,13 +90,31 @@ export default function PortfolioBreakdown() {
   }
 
   function toAllocations(totals: Record<string, number>): Allocation[] {
-    return Object.entries(totals)
-      .sort((a, b) => b[1] - a[1])
-      .map(([label, usd], i) => ({
-        label,
-        percentage: totalUsd > 0 ? Math.round((usd / totalUsd) * 100) : 0,
+    const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    if (totalUsd <= 0) {
+      return entries.map(([label], i) => ({
+        label, percentage: 0,
         color: opacityScale[i] || opacityScale[opacityScale.length - 1],
       }));
+    }
+
+    // Largest remainder method — guarantees sum is exactly 100
+    const exact = entries.map(([, usd]) => (usd / totalUsd) * 100);
+    const floored = exact.map(Math.floor);
+    let remainder = 100 - floored.reduce((s, v) => s + v, 0);
+    const remainders = exact.map((v, i) => ({ i, r: v - floored[i] }));
+    remainders.sort((a, b) => b.r - a.r);
+    for (const { i } of remainders) {
+      if (remainder <= 0) break;
+      floored[i]++;
+      remainder--;
+    }
+
+    return entries.map(([label], i) => ({
+      label,
+      percentage: floored[i],
+      color: opacityScale[i] || opacityScale[opacityScale.length - 1],
+    }));
   }
 
   const chainAllocations = toAllocations(chainTotals);
