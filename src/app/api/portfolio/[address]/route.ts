@@ -16,7 +16,7 @@ export async function GET(
     const data = await fetchPortfolio(address);
     return NextResponse.json(data);
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[api/portfolio]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

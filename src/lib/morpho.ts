@@ -25,11 +25,11 @@ export async function fetchMorphoApys(
     if (!ETH_ADDRESS_RE.test(v.address)) return;
 
     try {
-      const query = `{ vault: vaultByAddress(address: "${v.address}", chainId: ${Number(v.chainId)}) { address state { apy netApy totalAssetsUsd } } }`;
+      const query = `query VaultState($address: String!, $chainId: Int!) { vault: vaultByAddress(address: $address, chainId: $chainId) { address state { apy netApy totalAssetsUsd } } }`;
       const res = await fetch(MORPHO_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, variables: { address: v.address, chainId: Number(v.chainId) } }),
         signal: AbortSignal.timeout(5000),
       });
       if (!res.ok) return;

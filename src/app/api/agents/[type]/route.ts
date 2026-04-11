@@ -22,7 +22,7 @@ export async function POST(
 
     return NextResponse.json(decision);
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('[api/agents]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

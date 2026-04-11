@@ -1,28 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getComposerQuote } from '@/lib/lifi';
+import { validateAddress, validateChainId, validateAmount, ValidationError } from '@/lib/validation';
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
 
-    const fromChain = searchParams.get('fromChain');
-    const toChain = searchParams.get('toChain');
-    const fromToken = searchParams.get('fromToken');
-    const toToken = searchParams.get('toToken');
-    const fromAddress = searchParams.get('fromAddress');
-    const toAddress = searchParams.get('toAddress');
-    const fromAmount = searchParams.get('fromAmount');
+    const fromChain = validateChainId(searchParams.get('fromChain'), 'fromChain');
+    const toChain = validateChainId(searchParams.get('toChain'), 'toChain');
+    const fromToken = validateAddress(searchParams.get('fromToken'), 'fromToken');
+    const toToken = validateAddress(searchParams.get('toToken'), 'toToken');
+    const fromAddress = validateAddress(searchParams.get('fromAddress'), 'fromAddress');
+    const toAddress = validateAddress(searchParams.get('toAddress'), 'toAddress');
+    const fromAmount = validateAmount(searchParams.get('fromAmount'));
     const slippage = searchParams.get('slippage');
 
-    if (!fromChain || !toChain || !fromToken || !toToken || !fromAddress || !toAddress || !fromAmount) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
-    }
-
     const quote = await getComposerQuote({
-      fromChain: Number(fromChain),
-      toChain: Number(toChain),
+      fromChain,
+      toChain,
       fromToken,
-      toToken, // This is the VAULT ADDRESS
+      toToken,
       fromAddress,
       toAddress,
       fromAmount,
@@ -31,7 +28,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(quote);
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : 'Internal server error';
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (error instanceof ValidationError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    console.error('[api/quote]', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

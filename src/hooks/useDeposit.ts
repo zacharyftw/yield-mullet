@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useSendTransaction, useWaitForTransactionReceipt } from "wagmi";
 import type { ComposerQuote } from "@/types";
 import type { Address } from "viem";
+import { isValidLifiTarget } from "@/lib/lifi-contracts";
 
 interface UseDepositParams {
   fromChain: number;
@@ -69,6 +70,11 @@ export function useDeposit() {
     if (!quote?.transactionRequest) return;
 
     const { to, data, value, chainId } = quote.transactionRequest;
+
+    if (!isValidLifiTarget(to)) {
+      setQuoteError("Quote targets unknown contract — aborting for safety");
+      return;
+    }
 
     sendTransaction({
       to: to as Address,

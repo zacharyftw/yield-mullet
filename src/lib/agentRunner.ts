@@ -7,6 +7,11 @@ const groq = new OpenAI({
   baseURL: 'https://api.groq.com/openai/v1',
 });
 
+// Strip non-printable chars and cap length to prevent prompt injection
+function sanitize(s: string, maxLen = 100): string {
+  return s.replace(/[^\x20-\x7E]/g, '').slice(0, maxLen);
+}
+
 export async function runAgent(
   agentType: AgentType,
   vaults: Vault[]
@@ -17,20 +22,20 @@ export async function runAgent(
   // Filter to only transactional vaults
   const transactionalVaults = vaults.filter(v => v.isTransactional);
 
-  // Prepare vault data summary for the LLM
+  // Prepare vault data summary for the LLM — sanitize all string fields
   const vaultSummary = transactionalVaults.map(v => ({
     address: v.address,
-    name: v.name,
-    protocol: v.protocol.name,
-    chain: v.network,
+    name: sanitize(v.name),
+    protocol: sanitize(v.protocol.name),
+    chain: sanitize(v.network, 30),
     chainId: v.chainId,
-    asset: v.underlyingTokens.map(t => t.symbol).join('/'),
+    asset: v.underlyingTokens.map(t => sanitize(t.symbol, 20)).join('/'),
     apyBase: v.analytics.apy.base,
     apyReward: v.analytics.apy.reward,
     apyTotal: v.analytics.apy.total,
     apy7d: v.analytics.apy7d,
     tvlUsd: v.analytics.tvl.usd,
-    tags: v.tags,
+    tags: v.tags.map(t => sanitize(t, 30)),
   }));
 
   const completion = await groq.chat.completions.create({
@@ -41,7 +46,7 @@ export async function runAgent(
       { role: 'system', content: config.systemPrompt },
       {
         role: 'user',
-        content: `Here are the available vaults. Analyze and provide your allocation decision:\n\n${JSON.stringify(vaultSummary, null, 2)}`
+        content: `Analyze these vaults and provide your allocation.\n\n<vault-data>\n${JSON.stringify(vaultSummary)}\n</vault-data>\n\nRespond with ONLY the JSON allocation.`
       }
     ],
   });
