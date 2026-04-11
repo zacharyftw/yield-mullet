@@ -1,15 +1,56 @@
-import OpenAI from 'openai';
+import { callLLM } from './llm';
 import { AGENT_CONFIGS } from './agents';
 import type { AgentDecision, AgentType, Vault, VaultAllocation } from '@/types';
 
-const groq = new OpenAI({
-  apiKey: process.env.GROQ_API_KEY,
-  baseURL: 'https://api.groq.com/openai/v1',
-});
-
-// Strip non-printable chars and cap length to prevent prompt injection
-function sanitize(s: string, maxLen = 100): string {
+function sanitize(s: string, maxLen = 60): string {
   return s.replace(/[^\x20-\x7E]/g, '').slice(0, maxLen);
+}
+
+// Pre-filter vaults by agent risk profile — reduces 500+ vaults to ~20-30
+function preFilter(vaults: Vault[], agentType: AgentType): Vault[] {
+  const tx = vaults.filter(v => v.isTransactional);
+
+  switch (agentType) {
+    case 'stable': {
+      const filtered = tx.filter(v => {
+        const tvl = parseFloat(v.analytics.tvl.usd);
+        const hasStable = v.tags.includes('stablecoin');
+        return hasStable && tvl >= 1_000_000;
+      });
+      return filtered.sort((a, b) => (b.analytics.apy.total ?? 0) - (a.analytics.apy.total ?? 0)).slice(0, 30);
+    }
+    case 'conservative': {
+      const filtered = tx.filter(v => {
+        const tvl = parseFloat(v.analytics.tvl.usd);
+        const apy = v.analytics.apy.total ?? 0;
+        return tvl >= 500_000 && apy < 50 && apy > 0;
+      });
+      return filtered.sort((a, b) => (b.analytics.apy.total ?? 0) - (a.analytics.apy.total ?? 0)).slice(0, 30);
+    }
+    case 'degen': {
+      const filtered = tx.filter(v => {
+        const tvl = parseFloat(v.analytics.tvl.usd);
+        const apy = v.analytics.apy.total ?? 0;
+        return tvl >= 100_000 && apy > 0;
+      });
+      return filtered.sort((a, b) => (b.analytics.apy.total ?? 0) - (a.analytics.apy.total ?? 0)).slice(0, 30);
+    }
+  }
+}
+
+function toTsv(vaults: Vault[]): string {
+  const header = 'address\tprotocol\tchain\tasset\tapy\tapy7d\ttvl\ttags';
+  const rows = vaults.map(v => [
+    v.address,
+    sanitize(v.protocol.name, 20),
+    sanitize(v.network, 15),
+    v.underlyingTokens.map(t => t.symbol).join('/'),
+    (v.analytics.apy.total ?? 0).toFixed(2),
+    (v.analytics.apy7d ?? 0).toFixed(2),
+    v.analytics.tvl.usd,
+    v.tags.join(','),
+  ].join('\t'));
+  return [header, ...rows].join('\n');
 }
 
 export async function runAgent(
@@ -19,42 +60,24 @@ export async function runAgent(
   const config = AGENT_CONFIGS[agentType];
   if (!config) throw new Error(`Unknown agent type: ${agentType}`);
 
-  // Filter to only transactional vaults
-  const transactionalVaults = vaults.filter(v => v.isTransactional);
+  const candidates = preFilter(vaults, agentType);
+  if (candidates.length === 0) throw new Error('No vaults match agent criteria');
 
-  // Prepare vault data summary for the LLM — sanitize all string fields
-  const vaultSummary = transactionalVaults.map(v => ({
-    address: v.address,
-    name: sanitize(v.name),
-    protocol: sanitize(v.protocol.name),
-    chain: sanitize(v.network, 30),
-    chainId: v.chainId,
-    asset: v.underlyingTokens.map(t => sanitize(t.symbol, 20)).join('/'),
-    apyBase: v.analytics.apy.base,
-    apyReward: v.analytics.apy.reward,
-    apyTotal: v.analytics.apy.total,
-    apy7d: v.analytics.apy7d,
-    tvlUsd: v.analytics.tvl.usd,
-    tags: v.tags.map(t => sanitize(t, 30)),
-  }));
+  const tsv = toTsv(candidates);
 
-  const completion = await groq.chat.completions.create({
-    model: 'llama-3.3-70b-versatile',
-    max_tokens: 2048,
-    temperature: 0.3,
+  const result = await callLLM({
     messages: [
       { role: 'system', content: config.systemPrompt },
       {
         role: 'user',
-        content: `Analyze these vaults and provide your allocation.\n\n<vault-data>\n${JSON.stringify(vaultSummary)}\n</vault-data>\n\nRespond with ONLY the JSON allocation.`
+        content: `Analyze these ${candidates.length} pre-filtered vaults (TSV format) and provide your allocation.\n\n<vault-data>\n${tsv}\n</vault-data>\n\nRespond with ONLY the JSON allocation.`
       }
     ],
+    maxTokens: 1024,
+    temperature: 0.3,
   });
 
-  const responseText = completion.choices[0]?.message?.content || '';
-
-  // Parse the JSON response
-  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+  const jsonMatch = result.content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('Agent did not return valid JSON');
 
   let decision;
@@ -68,10 +91,9 @@ export async function runAgent(
     throw new Error('Agent response missing allocations array');
   }
 
-  // Only include vaults that actually exist in our data
   const selectedVaults: VaultAllocation[] = [];
   for (const a of decision.allocations as Array<{ vaultAddress: string; percent: number; reason: string }>) {
-    const vault = transactionalVaults.find(v => v.address === a.vaultAddress);
+    const vault = candidates.find(v => v.address === a.vaultAddress);
     if (vault) {
       selectedVaults.push({
         vault,
