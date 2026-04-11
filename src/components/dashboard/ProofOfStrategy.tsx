@@ -27,7 +27,7 @@ export default function ProofOfStrategy({ decisions = [] }: ProofOfStrategyProps
   const hasDecisions = decisions.length > 0;
 
   return (
-    <div className="rounded-lg border border-border bg-white p-6 overflow-hidden">
+    <div className="rounded-lg border border-border bg-card p-6 overflow-hidden">
       <h3 className="text-base font-semibold text-foreground mb-6">
         Strategy Log
       </h3>

@@ -117,7 +117,7 @@ export default function VaultTable({ vaults, isLoading, onDeposit }: VaultTableP
 
   if (isLoading) {
     return (
-      <div className="rounded-lg border border-border bg-white p-8">
+      <div className="rounded-lg border border-border bg-card p-8">
         <div className="animate-pulse space-y-3">
           <div className="h-10 bg-border/50 rounded-lg" />
           {Array.from({ length: 8 }).map((_, i) => (
@@ -129,7 +129,7 @@ export default function VaultTable({ vaults, isLoading, onDeposit }: VaultTableP
   }
 
   return (
-    <div className="rounded-lg border border-border bg-white overflow-hidden">
+    <div className="rounded-lg border border-border bg-card overflow-hidden">
       {/* Filter Bar */}
       <div className="p-4 border-b border-border space-y-3">
         {/* Search + Category + TVL */}

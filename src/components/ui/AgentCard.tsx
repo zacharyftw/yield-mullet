@@ -39,8 +39,8 @@ export default function AgentCard({
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
       className={`relative rounded-lg border p-5 cursor-pointer transition-all duration-200 ${
         isSelected
-          ? "border-foreground bg-white shadow-[4px_4px_0px_#0a0a0a]"
-          : "border-border bg-white hover:border-foreground/30"
+          ? "border-foreground bg-card shadow-[4px_4px_0px] shadow-foreground"
+          : "border-border bg-card hover:border-foreground/30"
       }`}
       onClick={onSelect}
     >

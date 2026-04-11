@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-@theme inline {
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Colors — @theme so dark mode can override via CSS variables */
+@theme {
   --color-background: #ffffff;
   --color-foreground: #0a0a0a;
   --color-card: #f8f8f9;
@@ -10,8 +13,30 @@
   --color-muted: #798086;
   --color-border: #e4e7e9;
   --color-border-highlight: #3F49E1;
+}
+
+/* Fonts — inline because they reference var() */
+@theme inline {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Dark theme */
+html.dark {
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  --color-card: #111113;
+  --color-primary: #6366f1;
+  --color-primary-dark: #4f46e5;
+  --color-secondary: #818cf8;
+  --color-muted: #71717a;
+  --color-border: #27272a;
+  --color-border-highlight: #6366f1;
+}
+
+/* Smooth theme transition on everything */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Custom scrollbar */
@@ -21,40 +46,33 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f4f5f6;
+  background: var(--color-card);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d1d5db;
+  background: var(--color-border);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3F49E1;
-}
-
-/* Smooth transitions as default */
-*,
-*::before,
-*::after {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--color-primary);
 }
 
 body {
-  background: #ffffff;
-  color: #0a0a0a;
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 /* Selection styling */
 ::selection {
-  background: rgba(63, 73, 225, 0.2);
-  color: #0a0a0a;
+  background: rgba(99, 102, 241, 0.2);
+  color: var(--color-foreground);
 }
 
 /* Focus ring */
 :focus-visible {
-  outline: 2px solid rgba(63, 73, 225, 0.6);
+  outline: 2px solid rgba(99, 102, 241, 0.6);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -72,10 +90,10 @@ body {
 /* Glow pulse — selected agent card */
 @keyframes glow-pulse {
   0%, 100% {
-    box-shadow: 0 0 0 1px rgba(63, 73, 225, 0.3);
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
   }
   50% {
-    box-shadow: 0 0 0 1px rgba(63, 73, 225, 0.5), 0 0 12px rgba(63, 73, 225, 0.08);
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.5), 0 0 12px rgba(99, 102, 241, 0.08);
   }
 }
 
@@ -92,9 +110,9 @@ body {
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    #f0f0f0 25%,
-    #e4e7e9 50%,
-    #f0f0f0 75%
+    var(--color-card) 25%,
+    var(--color-border) 50%,
+    var(--color-card) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
