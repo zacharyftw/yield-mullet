@@ -39,12 +39,15 @@ export interface Vault {
   }>;
 }
 
+export interface VaultsPageResponse {
+  data: Vault[];
+  nextCursor?: string;
+  total?: number;
+}
+
 export interface VaultsResponse {
   data: Vault[];
-  meta?: {
-    cursor?: string;
-    hasMore?: boolean;
-  };
+  total: number;
 }
 
 export interface Chain {

@@ -9,6 +9,7 @@ import DepositModal from "@/components/deposit/DepositModal";
 import ProofOfStrategy from "@/components/dashboard/ProofOfStrategy";
 import AgentResults from "@/components/dashboard/AgentResults";
 import PortfolioBreakdown from "@/components/dashboard/PortfolioBreakdown";
+import { useVaults } from "@/hooks/useVaults";
 import { useAgent } from "@/hooks/useAgent";
 import type { Vault, AgentDecision, AgentType } from "@/types";
 
@@ -19,7 +20,6 @@ const agents = [
     riskLevel: "low" as const,
     description:
       "Focuses on blue-chip stablecoin yields across battle-tested lending protocols. Prioritizes capital preservation with steady, predictable returns. Targets Aave, Compound, and Spark.",
-    apy: 5.2,
   },
   {
     id: "conservative" as AgentType,
@@ -27,7 +27,6 @@ const agents = [
     riskLevel: "medium" as const,
     description:
       "Balances ETH staking, liquid staking derivatives, and moderate DeFi strategies. Accepts some volatility for higher yields. Operates across Lido, Rocket Pool, and Pendle.",
-    apy: 8.7,
   },
   {
     id: "degen" as AgentType,
@@ -35,20 +34,14 @@ const agents = [
     riskLevel: "high" as const,
     description:
       "Hunts for the highest yields through concentrated liquidity, leveraged farming, and new protocol incentives. High risk, high reward. Active on Uniswap V4, GMX, and emerging protocols.",
-    apy: 24.3,
   },
-];
-
-const stats = [
-  { label: "Vaults Tracked", value: "672+" },
-  { label: "Chains", value: "21" },
-  { label: "Protocols", value: "20+" },
 ];
 
 export default function Home() {
   const [selectedAgent, setSelectedAgent] = useState<AgentType | null>(null);
   const [decisions, setDecisions] = useState<AgentDecision[]>([]);
   const [depositVault, setDepositVault] = useState<Vault | null>(null);
+  const { vaults } = useVaults({ sortBy: "apy" });
   const { decision, isLoading: agentLoading, error: agentError, runAgent, reset } = useAgent(selectedAgent);
 
   // Track latest decision per agent type for risk score display
@@ -59,6 +52,39 @@ export default function Home() {
     }
     return map;
   }, [decisions]);
+
+  // Compute live stats from vault data
+  const liveStats = useMemo(() => {
+    const chains = new Set(vaults.map(v => v.network));
+    const protocols = new Set(vaults.map(v => v.protocol.name));
+    return {
+      vaults: vaults.length,
+      chains: chains.size,
+      protocols: protocols.size,
+    };
+  }, [vaults]);
+
+  // Compute median APY per risk tier from real vault data
+  const agentApys = useMemo(() => {
+    if (vaults.length === 0) return { stable: null, conservative: null, degen: null };
+
+    // Filter to vaults with meaningful APY (>0.5%) for representative numbers
+    const apys = vaults
+      .map(v => v.analytics.apy.total)
+      .filter((a): a is number => a !== null && a > 0.5)
+      .sort((a, b) => a - b);
+
+    if (apys.length === 0) return { stable: null, conservative: null, degen: null };
+
+    const third = Math.floor(apys.length / 3);
+    const median = (arr: number[]) => arr[Math.floor(arr.length / 2)] ?? null;
+
+    return {
+      stable: median(apys.slice(0, third)),
+      conservative: median(apys),
+      degen: median(apys.slice(-third)),
+    };
+  }, [vaults]);
 
 
   function handleRunAgent() {
@@ -125,7 +151,11 @@ export default function Home() {
               transition={{ duration: 0.6, delay: 0.45 }}
               className="mt-14 flex items-center justify-center gap-12 sm:gap-16"
             >
-              {stats.map((stat) => (
+              {[
+                { label: "Vaults Tracked", value: liveStats.vaults > 0 ? `${liveStats.vaults}` : "—" },
+                { label: "Chains", value: liveStats.chains > 0 ? `${liveStats.chains}` : "—" },
+                { label: "Protocols", value: liveStats.protocols > 0 ? `${liveStats.protocols}` : "—" },
+              ].map((stat) => (
                 <div key={stat.label} className="flex flex-col items-center gap-1">
                   <span className="text-3xl font-bold text-foreground tabular-nums">
                     {stat.value}
@@ -169,7 +199,7 @@ export default function Home() {
                     name={agent.name}
                     riskLevel={agent.riskLevel}
                     description={agent.description}
-                    apy={agent.apy}
+                    apy={agentApys[agent.id]}
                     isSelected={selectedAgent === agent.id}
                     isRunning={agentLoading && selectedAgent === agent.id}
                     riskScore={latestDecisionByAgent[agent.id]?.riskScore ?? null}

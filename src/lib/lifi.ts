@@ -1,15 +1,15 @@
-import type { VaultsResponse, ComposerQuote, PortfolioPosition } from '@/types';
+import type { Vault, VaultsPageResponse, VaultsResponse, ComposerQuote, PortfolioPosition } from '@/types';
 
 const EARN_BASE_URL = 'https://earn.li.fi';
 const COMPOSER_BASE_URL = 'https://li.quest';
 
-export async function fetchVaults(params?: {
+async function fetchVaultsPage(params?: {
   chainId?: number;
   asset?: string;
   minTvl?: number;
   sortBy?: string;
   cursor?: string;
-}): Promise<VaultsResponse> {
+}): Promise<VaultsPageResponse> {
   const url = new URL(`${EARN_BASE_URL}/v1/earn/vaults`);
   if (params?.chainId) url.searchParams.set('chainId', String(params.chainId));
   if (params?.asset) url.searchParams.set('asset', params.asset);
@@ -19,7 +19,27 @@ export async function fetchVaults(params?: {
 
   const res = await fetch(url.toString());
   if (!res.ok) throw new Error(`Earn API error: ${res.status}`);
-  return res.json() as Promise<VaultsResponse>;
+  return res.json() as Promise<VaultsPageResponse>;
+}
+
+export async function fetchVaults(params?: {
+  chainId?: number;
+  asset?: string;
+  minTvl?: number;
+  sortBy?: string;
+}): Promise<VaultsResponse> {
+  const allVaults: Vault[] = [];
+  let cursor: string | undefined;
+  let total = 0;
+
+  do {
+    const page = await fetchVaultsPage({ ...params, cursor });
+    allVaults.push(...(page.data ?? []));
+    total = page.total ?? allVaults.length;
+    cursor = page.nextCursor;
+  } while (cursor);
+
+  return { data: allVaults, total };
 }
 
 export async function fetchPortfolio(userAddress: string): Promise<PortfolioPosition[]> {
@@ -32,7 +52,7 @@ export async function getComposerQuote(params: {
   fromChain: number;
   toChain: number;
   fromToken: string;
-  toToken: string; // This MUST be the vault address, NOT the underlying token
+  toToken: string;
   fromAddress: string;
   toAddress: string;
   fromAmount: string;
@@ -52,7 +72,6 @@ export async function getComposerQuote(params: {
   const apiKey = process.env.LIFI_API_KEY;
   if (!apiKey) throw new Error('LIFI_API_KEY not set');
 
-  // NOTE: Composer quote is a GET request, NOT POST
   const res = await fetch(url.toString(), {
     headers: { 'x-lifi-api-key': apiKey },
   });
