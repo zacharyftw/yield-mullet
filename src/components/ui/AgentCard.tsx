@@ -75,7 +75,7 @@ export default function AgentCard({
               e.stopPropagation();
               onRun();
             }}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-foreground text-white disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-foreground/90 transition-colors"
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-foreground text-background disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 hover:bg-foreground/90 transition-colors"
           >
             {isRunning ? (
               <>

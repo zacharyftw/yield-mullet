@@ -153,7 +153,7 @@ export default function VaultTable({ vaults, isLoading, onDeposit }: VaultTableP
                 onClick={() => setCategory(cat)}
                 className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                   category === cat
-                    ? "bg-foreground text-white"
+                    ? "bg-foreground text-background"
                     : "bg-card border border-border text-muted hover:text-foreground"
                 }`}
               >
@@ -312,7 +312,7 @@ export default function VaultTable({ vaults, isLoading, onDeposit }: VaultTableP
                       <td className="px-4 py-3 text-right">
                         <button
                           onClick={() => onDeposit(vault)}
-                          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-foreground text-white hover:bg-foreground/90 transition-colors"
+                          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-foreground text-background hover:bg-foreground/90 transition-colors"
                         >
                           Deposit
                         </button>
