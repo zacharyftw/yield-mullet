@@ -1,12 +1,10 @@
-# Yield Mullet
+# SwarmFi
 
-Business in the front, yield in the back.
+SwarmFi is a DeFi yield aggregator that uses three AI agents with different risk appetites to decide where your money should go across 21 chains and 672+ vaults. You pick a strategy, the agent analyzes live vault data, explains its reasoning, and you deposit in one click via LI.FI's cross-chain infrastructure.
 
-Yield Mullet is a DeFi yield aggregator that uses three AI agents with different risk appetites to decide where your money should go across 21 chains and 672+ vaults. You pick a strategy, the agent analyzes live vault data, explains its reasoning, and you deposit in one click via LI.FI's cross-chain infrastructure.
+**Live:** [swarmfi.vercel.app](https://swarmfi.vercel.app)
 
-**Live:** [yield-mullet.vercel.app](https://yield-mullet.vercel.app)
-
-Built during the [DeFi Mullet Hackathon #1](https://github.com/brucexu-eth/defi-mullet-hackathon) (April 8-14, 2026).
+Built during the [DeFi Mullet Hackathon #1](https://github.com/brucexu-eth/defi-mullet-hackathon) (April 8–14, 2026).
 
 ## How it works
 
@@ -32,8 +30,8 @@ The scoring considers:
 ## Running locally
 
 ```bash
-git clone https://github.com/zacharyftw/yield-mullet.git
-cd yield-mullet
+git clone https://github.com/zacharyftw/swarmfi.git
+cd swarmfi
 pnpm install
 cp .env.example .env.local
 # fill in your keys (see below)

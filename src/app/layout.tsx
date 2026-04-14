@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Yield Mullet — AI-Powered DeFi Yield Aggregator",
+  title: "SwarmFi — AI-Powered DeFi Yield Aggregator",
   description:
-    "Business in the front, yield in the back. An AI agent swarm that finds and optimizes DeFi yield across chains.",
+    "An AI agent swarm that finds and optimizes DeFi yield across chains.",
 };
 
 export default function RootLayout({

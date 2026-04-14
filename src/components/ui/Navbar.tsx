@@ -20,7 +20,7 @@ export default function Navbar() {
         <div className="flex items-center gap-2.5">
           <Shuffle className="h-5 w-5 text-foreground" />
           <span className="text-lg font-bold text-foreground">
-            Yield Mullet
+            SwarmFi
           </span>
         </div>
 

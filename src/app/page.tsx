@@ -120,7 +120,7 @@ export default function Home() {
               transition={{ duration: 0.6 }}
               className="text-5xl font-bold tracking-tight sm:text-7xl text-foreground"
             >
-              Yield Mullet
+              SwarmFi
             </motion.h1>
 
             <motion.p
@@ -297,7 +297,7 @@ export default function Home() {
       <footer className="relative z-10 border-t border-border py-10 px-4">
         <div className="mx-auto max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-muted/60">
-            Built for DeFi Mullet Hackathon &mdash; AI-powered yield
+            SwarmFi &mdash; AI-powered yield
             aggregation on Starknet &amp; EVM chains.
           </p>
           <a

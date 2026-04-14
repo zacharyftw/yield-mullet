@@ -30,7 +30,7 @@ const alchemyUrl = (network: string) =>
   alchemyKey ? `https://${network}.g.alchemy.com/v2/${alchemyKey}` : undefined;
 
 const config = getDefaultConfig({
-  appName: "Yield Mullet",
+  appName: "SwarmFi",
   projectId: projectId || "MISSING_PROJECT_ID",
   chains: [mainnet, arbitrum, optimism, polygon, base, avalanche],
   transports: {
