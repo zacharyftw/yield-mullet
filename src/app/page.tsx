@@ -11,6 +11,7 @@ import AgentResults from "@/components/dashboard/AgentResults";
 import PortfolioBreakdown from "@/components/dashboard/PortfolioBreakdown";
 import { useVaults } from "@/hooks/useVaults";
 import { useAgent } from "@/hooks/useAgent";
+import { useStrategies } from "@/hooks/useStrategies";
 import { useCountUp } from "@/hooks/useCountUp";
 import type { Vault, AgentDecision, AgentType } from "@/types";
 
@@ -44,15 +45,16 @@ export default function Home() {
   const [depositVault, setDepositVault] = useState<Vault | null>(null);
   const { vaults } = useVaults({ sortBy: "apy" });
   const { decision, isLoading: agentLoading, error: agentError, runAgent, reset } = useAgent(selectedAgent);
+  const { data: cachedStrategies } = useStrategies();
 
-  // Track latest decision per agent type for risk score display
+  // Track latest decision per agent type — prefer user-run decisions, fall back to cached
   const latestDecisionByAgent = useMemo(() => {
-    const map: Partial<Record<AgentType, AgentDecision>> = {};
+    const map: Partial<Record<AgentType, AgentDecision>> = { ...cachedStrategies };
     for (const d of decisions) {
       map[d.agent] = d;
     }
     return map;
-  }, [decisions]);
+  }, [decisions, cachedStrategies]);
 
   // Compute live stats from vault data
   const liveStats = useMemo(() => {
@@ -70,7 +72,7 @@ export default function Home() {
   const animChains = useCountUp(liveStats.chains);
   const animProtocols = useCountUp(liveStats.protocols);
 
-  // Compute agent APY from actual allocations when available
+  // Compute agent APY from actual allocations (cached or user-run)
   const agentApys = useMemo(() => {
     const weightedApy = (d: AgentDecision): number => {
       return d.selectedVaults.reduce((sum, a) => {
