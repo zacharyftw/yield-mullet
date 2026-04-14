@@ -83,8 +83,8 @@ export default function PortfolioBreakdown() {
 
   for (const pos of positions) {
     const usd = parseFloat(pos.balanceUsd || "0");
-    const chain = pos.vault.network || "Unknown";
-    const asset = pos.vault.underlyingTokens?.map(t => t.symbol).join(" / ") || pos.vault.name || "Unknown";
+    const chain = pos.vault?.network || "Unknown";
+    const asset = pos.vault?.underlyingTokens?.map(t => t.symbol).join(" / ") || pos.vault?.name || "Unknown";
     chainTotals[chain] = (chainTotals[chain] || 0) + usd;
     assetTotals[asset] = (assetTotals[asset] || 0) + usd;
   }

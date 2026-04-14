@@ -73,7 +73,7 @@ export default function ProofOfStrategy({ decisions = [] }: ProofOfStrategyProps
 
                 {/* Allocation summary */}
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {entry.selectedVaults.map((alloc, j) => (
+                  {entry.selectedVaults.filter(a => a.vault).map((alloc, j) => (
                     <span
                       key={j}
                       className="text-xs px-2 py-0.5 rounded border border-border text-foreground font-mono"

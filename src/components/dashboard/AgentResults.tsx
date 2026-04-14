@@ -56,7 +56,7 @@ export default function AgentResults({ decision, onDeposit }: AgentResultsProps)
         <h4 className="text-sm font-medium text-muted uppercase tracking-wider">
           Recommended Allocations
         </h4>
-        {decision.selectedVaults.map((alloc, i) => {
+        {decision.selectedVaults.filter(a => a.vault).map((alloc, i) => {
           const vault = alloc.vault;
           const network = vault.network || "Unknown";
           const chainStyle = chainColors[network] || defaultChainColor;
@@ -109,7 +109,7 @@ export default function AgentResults({ decision, onDeposit }: AgentResultsProps)
       </div>
 
       {/* CTA */}
-      {onDeposit && decision.selectedVaults.length > 0 && (
+      {onDeposit && decision.selectedVaults.length > 0 && decision.selectedVaults[0]?.vault && (
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

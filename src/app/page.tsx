@@ -76,7 +76,7 @@ export default function Home() {
   const agentApys = useMemo(() => {
     const weightedApy = (d: AgentDecision): number => {
       return d.selectedVaults.reduce((sum, a) => {
-        const apy = a.vault.analytics.apy.total ?? 0;
+        const apy = a.vault?.analytics?.apy?.total ?? 0;
         return sum + apy * (a.allocationPercent / 100);
       }, 0);
     };
