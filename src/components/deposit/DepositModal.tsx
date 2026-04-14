@@ -51,6 +51,9 @@ export default function DepositModal({
     isQuoting,
     quoteError,
     getQuote,
+    needsApproval,
+    isApproving,
+    approve,
     sendTx,
     isSending,
     isConfirming,
@@ -135,6 +138,11 @@ export default function DepositModal({
       fromAddress: address,
       fromAmount: fromAmountSmallest,
     });
+  };
+
+  const handleApprove = async () => {
+    if (!selectedToken) return;
+    await approve(selectedToken.address, fromAmountSmallest);
   };
 
   const handleDeposit = () => {
@@ -534,6 +542,21 @@ export default function DepositModal({
                             </>
                           ) : (
                             "Get Quote"
+                          )}
+                        </button>
+                      ) : needsApproval ? (
+                        <button
+                          onClick={handleApprove}
+                          disabled={isApproving}
+                          className="w-full py-3.5 rounded-xl bg-primary text-background font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        >
+                          {isApproving ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Approving...
+                            </>
+                          ) : (
+                            `Approve ${selectedToken?.symbol ?? "Token"}`
                           )}
                         </button>
                       ) : (
