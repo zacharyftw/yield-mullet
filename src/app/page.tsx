@@ -70,27 +70,21 @@ export default function Home() {
   const animChains = useCountUp(liveStats.chains);
   const animProtocols = useCountUp(liveStats.protocols);
 
-  // Compute median APY per risk tier from real vault data
+  // Compute agent APY from actual allocations when available
   const agentApys = useMemo(() => {
-    if (vaults.length === 0) return { stable: null, conservative: null, degen: null };
-
-    // Filter to vaults with meaningful APY (>0.5%) for representative numbers
-    const apys = vaults
-      .map(v => v.analytics.apy.total)
-      .filter((a): a is number => a !== null && a > 0.5)
-      .sort((a, b) => a - b);
-
-    if (apys.length === 0) return { stable: null, conservative: null, degen: null };
-
-    const third = Math.floor(apys.length / 3);
-    const median = (arr: number[]) => arr[Math.floor(arr.length / 2)] ?? null;
+    const weightedApy = (d: AgentDecision): number => {
+      return d.selectedVaults.reduce((sum, a) => {
+        const apy = a.vault.analytics.apy.total ?? 0;
+        return sum + apy * (a.allocationPercent / 100);
+      }, 0);
+    };
 
     return {
-      stable: median(apys.slice(0, third)),
-      conservative: median(apys),
-      degen: median(apys.slice(-third)),
+      stable: latestDecisionByAgent.stable ? weightedApy(latestDecisionByAgent.stable) : null,
+      conservative: latestDecisionByAgent.conservative ? weightedApy(latestDecisionByAgent.conservative) : null,
+      degen: latestDecisionByAgent.degen ? weightedApy(latestDecisionByAgent.degen) : null,
     };
-  }, [vaults]);
+  }, [latestDecisionByAgent]);
 
 
   function handleRunAgent() {
